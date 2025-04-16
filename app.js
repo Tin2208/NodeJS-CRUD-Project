@@ -2,17 +2,22 @@ const express = require("express");
 const db = require("./models");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
-
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger.config");
+const cors = require("cors");
 //config evn
 dotenv.config();
 
 const app = express();
-
+//config swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(express.json());
 // Middlewares
 app.use(morgan("dev"));
 app.use(express.json());
 
 app.use(express.json());
+app.use(cors());
 
 // Routes
 

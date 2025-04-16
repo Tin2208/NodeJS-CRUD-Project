@@ -100,6 +100,18 @@ const updateUser = async (req, res) => {
         message: `Users with id ${userId} not found`,
       });
     }
+    const existingUser = await db.user.findOne({
+      where: {
+        [db.Sequelize.Op.or]: [{ email }, { name }],
+      },
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "User name or email already exists",
+      });
+    }
 
     await user.update({
       name: name ?? user.name,
