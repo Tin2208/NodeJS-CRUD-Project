@@ -23,7 +23,7 @@ module.exports = {
   },
 
   isValidNumber(value, field = "Field") {
-    if (typeof value !== "number" || isNaN(value)) {
+    if (typeof value !== "number" || isNaN(value || value <= 0)) {
       return {
         valid: false,
         message: `${field} must be a valid number.`,

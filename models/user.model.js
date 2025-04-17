@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
-    "user", 
+    "user",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -10,22 +10,57 @@ module.exports = (sequelize, DataTypes) => {
       name: {
         type: DataTypes.STRING,
         allowNull: false,
-        isEmty: false,
-        notEmpty: true,
-        len: [1, 255]
+        unique: {
+          args: true,
+          msg: "Name already exists",
+        },
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Name cannot be empty",
+          },
+          len: {
+            args: [1, 255],
+            msg: "Name must be between 1 and 255 characters",
+          },
+        },
       },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
-        notEmpty: true,
-        len: [1, 255],
         isEmail: true,
+        unique: {
+          args: true,
+          msg: "Email already exists",
+        },
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Email cannot be empty",
+          },
+          len: {
+            args: [1, 255],
+            msg: "Email must be between 1 and 255 characters",
+          },
+        },
       },
       age: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        notEmpty: true
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Age cannot be empty",
+          },
+          isInt: {
+            args: true,
+            msg: "Age must be an integer",
+          },
+          min: {
+            args: 1,
+            msg: "Age must be greater than 0",
+          },
+        },
       },
     },
     {

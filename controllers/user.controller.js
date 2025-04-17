@@ -1,5 +1,5 @@
 const db = require("../models");
-const validators = require("../common/validators");
+const validators = require("../utils/validators");
 
 //Get all users
 const getAllUsers = async (req, res) => {
@@ -12,7 +12,7 @@ const getAllUsers = async (req, res) => {
         error: "No users found",
       });
     }
-    res.status(200).jsonjson({
+    res.status(200).json({
       success: true,
       message: "User fetched successfully",
       data: users,
@@ -42,13 +42,11 @@ const getUserById = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching user:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal Server Error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };
 
