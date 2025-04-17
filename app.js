@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger.config");
 const cors = require("cors");
-//config evn
+//config evnno
 dotenv.config();
 
 const app = express();
@@ -23,7 +23,7 @@ app.use(cors());
 
 app.use("/api/v1/users", require("./routes/user.routes"));
 
-app.get("/test", (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).send("<h1>Hello World</h1>");
 });
 

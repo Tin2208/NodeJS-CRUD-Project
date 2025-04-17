@@ -1,4 +1,5 @@
 const db = require("../models");
+const validators = require("../common/validators");
 
 //Get all users
 const getAllUsers = async (req, res) => {
@@ -6,9 +7,16 @@ const getAllUsers = async (req, res) => {
     const users = await db.user.findAll();
     console.log("Users fetched:", users);
     if (users.length === 0) {
-      res.status(404).json({ error: "No users found" });
+      res.status(404).json({
+        success: false,
+        error: "No users found",
+      });
     }
-    res.status(200).json(users);
+    res.status(200).jsonjson({
+      success: true,
+      message: "User fetched successfully",
+      data: users,
+    });
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -36,7 +44,11 @@ const getUserById = async (req, res) => {
     console.error("Error fetching user:", error);
     res
       .status(500)
-      .json({ success: false, message: "Internal Server Error", error: error });
+      .json({
+        success: false,
+        message: "Internal Server Error",
+        error: error.message,
+      });
   }
 };
 
@@ -44,11 +56,26 @@ const getUserById = async (req, res) => {
 const createUser = async (req, res) => {
   const { name, email, age } = req.body;
 
-  if (!name || !email || !age) {
-    return res.status(400).json({
-      success: false,
-      message: "Missing required fields: name, email, or age",
-    });
+  // Validate fields
+  const nameValidation = validators.isValidString(name, "Name");
+  if (!nameValidation.valid) {
+    return res
+      .status(400)
+      .json({ success: false, message: nameValidation.message });
+  }
+
+  const emailValidation = validators.isValidEmail(email, "Email");
+  if (!emailValidation.valid) {
+    return res
+      .status(400)
+      .json({ success: false, message: emailValidation.message });
+  }
+
+  const ageValidation = validators.isValidNumber(age, "Age");
+  if (!ageValidation.valid) {
+    return res
+      .status(400)
+      .json({ success: false, message: ageValidation.message });
   }
 
   try {
@@ -86,12 +113,42 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   const userId = req.params.id;
   const { name, email, age } = req.body;
+
   if (!userId) {
     return res.status(400).json({
       success: false,
       message: "Invalid ID or provide id",
     });
   }
+
+  // Optional fields validation
+  if (name !== undefined) {
+    const nameValidation = validators.isValidString(name, "Name");
+    if (!nameValidation.valid) {
+      return res
+        .status(400)
+        .json({ success: false, message: nameValidation.message });
+    }
+  }
+
+  if (email !== undefined) {
+    const emailValidation = validators.isValidEmail(email, "Email");
+    if (!emailValidation.valid) {
+      return res
+        .status(400)
+        .json({ success: false, message: emailValidation.message });
+    }
+  }
+
+  if (age !== undefined) {
+    const ageValidation = validators.isValidNumber(age, "Age");
+    if (!ageValidation.valid) {
+      return res
+        .status(400)
+        .json({ success: false, message: ageValidation.message });
+    }
+  }
+
   try {
     const user = await db.user.findByPk(userId);
     if (!user) {
@@ -100,13 +157,14 @@ const updateUser = async (req, res) => {
         message: `Users with id ${userId} not found`,
       });
     }
+
     const existingUser = await db.user.findOne({
       where: {
         [db.Sequelize.Op.or]: [{ email }, { name }],
       },
     });
 
-    if (existingUser) {
+    if (existingUser && existingUser.id !== parseInt(userId)) {
       return res.status(409).json({
         success: false,
         message: "User name or email already exists",

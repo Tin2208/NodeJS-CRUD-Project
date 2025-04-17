@@ -245,7 +245,7 @@ router.post("/", userController.createUser);
  *           type: integer
  *         description: The user ID
  *     requestBody:
- *       required: false
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
