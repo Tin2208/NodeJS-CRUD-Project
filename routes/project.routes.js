@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const projectController = require("../controllers/project.controller");
 
-
 /**
  * @swagger
  * tags:
@@ -37,16 +36,6 @@ const projectController = require("../controllers/project.controller");
  *                     enum: [pending, in progress, completed]
  *                   userId:
  *                     type: integer
- *       404:
- *         description: No projects found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: No project found
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -160,6 +149,11 @@ router.get("/:id", projectController.getProjectById);
  *                 enum: [pending, in progress, completed]
  *               userId:
  *                 type: integer
+ *             example:
+ *               title: "New Website"
+ *               description: "Build new landing page"
+ *               status: "pending"
+ *               userId: 1
  *     responses:
  *       201:
  *         description: Project created successfully
@@ -175,23 +169,7 @@ router.get("/:id", projectController.getProjectById);
  *                   type: string
  *                   example: Project created successfully
  *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 1
- *                     title:
- *                       type: string
- *                       example: Project 1
- *                     description:
- *                       type: string
- *                       example: Description of project 1
- *                     status:
- *                       type: string
- *                       example: in progress
- *                     userId:
- *                       type: integer
- *                       example: 1
+ *                   $ref: '#/components/schemas/Project'
  *       400:
  *         description: Missing required fields
  *         content:
@@ -205,8 +183,8 @@ router.get("/:id", projectController.getProjectById);
  *                 message:
  *                   type: string
  *                   example: "Missing required fields: title, description, status or userId"
- *       404:
- *         description: Project not found or already exists
+ *       409:
+ *         description: Project already exists
  *         content:
  *           application/json:
  *             schema:
@@ -217,7 +195,7 @@ router.get("/:id", projectController.getProjectById);
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: Project name or email already exists
+ *                   example: Project already exists
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -266,6 +244,11 @@ router.post("/", projectController.createProject);
  *                 enum: [pending, in progress, completed]
  *               userId:
  *                 type: integer
+ *             example:
+ *               title: "Updated Project"
+ *               description: "Updated project description"
+ *               status: "in progress"
+ *               userId: 1
  *     responses:
  *       200:
  *         description: Project updated successfully
@@ -281,23 +264,7 @@ router.post("/", projectController.createProject);
  *                   type: string
  *                   example: Project updated successfully
  *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 1
- *                     title:
- *                       type: string
- *                       example: Project 1
- *                     description:
- *                       type: string
- *                       example: Description of project 1
- *                     status:
- *                       type: string
- *                       example: in progress
- *                     userId:
- *                       type: integer
- *                       example: 1
+ *                   $ref: '#/components/schemas/Project'
  *       400:
  *         description: Invalid ID or input
  *         content:

@@ -1,5 +1,3 @@
-// utils/validators.js
-
 module.exports = {
   isValidString(value, field = "Field") {
     if (typeof value !== "string" || value.trim() === "") {
@@ -23,20 +21,41 @@ module.exports = {
   },
 
   isValidNumber(value, field = "Field") {
-    if (typeof value !== "number" || isNaN(value)) {
+    if (Array.isArray(value) || value === "[]") {
       return {
         valid: false,
         message: `${field} must be a valid number.`,
       };
-    } else {
-      if (value <= 0) {
-        return {
-          valid: false,
-          message: `${field} The input number must be greater than 0.`,
-        };
-      }
     }
 
-    return { valid: true };
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      (typeof value === "object" && value !== null)
+    ) {
+      return {
+        valid: false,
+        message: `${field} is required.`,
+      };
+    }
+
+    // const parsed = Number(value);
+
+    if (isNaN(value)) {
+      return {
+        valid: false,
+        message: `${field} must be a valid number.`,
+      };
+    }
+
+    if (parsed <= 0) {
+      return {
+        valid: false,
+        message: `${field} must be greater than 0.`,
+      };
+    }
+
+    return { valid: true, value: parsed };
   },
 };

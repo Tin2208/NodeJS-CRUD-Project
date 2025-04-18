@@ -1,6 +1,8 @@
 const validators = require("../utils/validators");
 const db = require("../models");
 
+console.log("📦 project.controller loaded");
+
 //Get all projects
 const getAllProjects = async (req, res) => {
   try {
@@ -37,7 +39,6 @@ const getProjectById = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: `Project with id ${projectId} not found`,
-        error: error.message,
       });
     }
     console.log("Project fetched:", project);
@@ -58,23 +59,14 @@ const getProjectById = async (req, res) => {
 
 //Create project
 const createProject = async (req, res) => {
+  console.log(`createProject: raw req.body=${JSON.stringify(req.body)}`);
   const { title, description, status, userId } = req.body;
 
-  if (
-    !title ||
-    !description ||
-    !status ||
-    userId === undefined ||
-    userId === null ||
-    userId === ""
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "All fields are required: title, description, status, userId",
-    });
-  }
-
-  const parsedUserId = Number(userId);
+  console.log(
+    `createProject: userId=${JSON.stringify(
+      userId
+    )}, type=${typeof userId}, isArray=${Array.isArray(userId)}`
+  );
 
   const titleValidation = validators.isValidString(title, "Title");
   const descriptionValidation = validators.isValidString(
@@ -82,7 +74,7 @@ const createProject = async (req, res) => {
     "Description"
   );
   const statusValidation = validators.isValidString(status, "Status");
-  const userIdValidation = validators.isValidNumber(parsedUserId, "User ID");
+  const userIdValidation = validators.isValidNumber(userId, "User ID");
 
   if (!titleValidation.valid) {
     return res
@@ -105,12 +97,18 @@ const createProject = async (req, res) => {
       .json({ success: false, message: userIdValidation.message });
   }
 
+  console.log("userId raw:", userId);
+  console.log("type:", typeof userId);
+  console.log("isArray:", Array.isArray(userId));
+
+  const validatedUserId = userIdValidation.value;
+
   try {
-    const user = await db.user.findByPk(parsedUserId);
+    const user = await db.user.findByPk(validatedUserId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: `User with id ${parsedUserId} does not exist`,
+        message: `User with id ${validatedUserId} does not exist`,
       });
     }
 
@@ -118,8 +116,10 @@ const createProject = async (req, res) => {
       title,
       description,
       status,
-      userId: parsedUserId,
+      userId: validatedUserId,
     });
+
+    console.log("Project created:", JSON.stringify(newProject, null, 2));
 
     res.status(201).json({
       success: true,
@@ -145,67 +145,88 @@ const updateProject = async (req, res) => {
       message: "Project ID is required",
     });
   }
-  const { title, description, status, userId } = req.body;
-  const titleValidation = validators.isValidString(title, "Title");
-  const descriptionValidation = validators.isValidString(
-    description,
-    "Description"
-  );
-  const statusValidation = validators.isValidString(status, "Status");
-  const userIdValidation = validators.isValidNumber(userId, "User ID");
-  if (!titleValidation.valid) {
-    return res.status(400).json({
-      success: false,
-      message: titleValidation.message,
-    });
-  }
-  if (!descriptionValidation.valid) {
-    return res.status(400).json({
-      success: false,
-      message: descriptionValidation.message,
-    });
-  }
-  if (!statusValidation.valid) {
-    return res.status(400).json({
-      success: false,
-      message: statusValidation.message,
-    });
-  }
-  if (!userIdValidation.valid) {
-    return res.status(400).json({
-      success: false,
-      message: userIdValidation.message,
-    });
-  }
+
   try {
     const project = await db.project.findByPk(projectId);
     if (!project) {
       return res.status(404).json({
         success: false,
         message: `Project with id ${projectId} does not exist`,
-        error: error.message,
       });
     }
-    const updateProject = await db.project.update(
-      {
-        title,
-        description,
-        status,
-        userId,
-      },
-      {
-        where: { id: projectId },
+
+    const updateData = {};
+    const { title, description, status, userId } = req.body;
+
+    if (title !== undefined) {
+      const titleValidation = validators.isValidString(title, "Title");
+      if (!titleValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: titleValidation.message,
+        });
       }
-    );
-    console.log("Project updated:", updateProject);
-    res.status(200).json({
+      updateData.title = title;
+    }
+
+    if (description !== undefined) {
+      const descValidation = validators.isValidString(
+        description,
+        "Description"
+      );
+      if (!descValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: descValidation.message,
+        });
+      }
+      updateData.description = description;
+    }
+
+    if (status !== undefined) {
+      const statusValidation = validators.isValidString(status, "Status");
+      if (!statusValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: statusValidation.message,
+        });
+      }
+      updateData.status = status;
+    }
+
+    if (userId !== undefined) {
+      const userIdValidation = validators.isValidNumber(userId, "User ID");
+      if (!userIdValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: userIdValidation.message,
+        });
+      }
+      updateData.userId = userId;
+    }
+
+    // Không có field nào được cung cấp
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "At least one field (title, description, status, userId) must be provided to update",
+      });
+    }
+
+    await db.project.update(updateData, {
+      where: { id: projectId },
+    });
+
+    const updatedProject = await db.project.findByPk(projectId);
+    return res.status(200).json({
       success: true,
       message: "Project updated successfully",
-      data: updateProject,
+      data: updatedProject,
     });
   } catch (error) {
     console.error("Error updating project:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
       error: error.message,
@@ -217,7 +238,7 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   const projectId = req.params.id;
   if (!projectId) {
-    return res.status(400).json({
+    return res.status(404).json({
       success: false,
       message: "Project ID is required",
     });
@@ -225,7 +246,7 @@ const deleteProject = async (req, res) => {
   try {
     const project = await db.project.findByPk(projectId);
     if (!project) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
         message: `Project with id ${projectId} does not exist`,
       });

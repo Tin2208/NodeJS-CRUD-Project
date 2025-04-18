@@ -32,10 +32,6 @@ module.exports = (sequelize, DataTypes) => {
             args: [1, 1000],
             msg: "Description must be between 1 and 1000 characters",
           },
-          notEmpty: {
-            args: true,
-            msg: "description cannot be empty",
-          },
         },
       },
       status: {
