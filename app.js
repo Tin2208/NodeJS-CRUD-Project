@@ -1,33 +1,34 @@
 const express = require("express");
-const db = require("./models");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
-const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./swagger.config");
 const cors = require("cors");
-//config evnno
+const swaggerUi = require("swagger-ui-express");
+
+const db = require("./models");
+const swaggerSpec = require("./swagger.config");
+const apiRoutes = require("./routes/api.routes");
+
 dotenv.config();
 
 const app = express();
-//config swagger
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use(express.json());
-// Middlewares
-app.use(morgan("dev"));
-app.use(express.json());
 
-app.use(express.json());
+// Middlewares
 app.use(cors());
+app.use(express.json());
+app.use(morgan("dev"));
+
+// Swagger docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
+app.use("/api/v1", apiRoutes);
 
-app.use("/api/v1/users", require("./routes/user.routes"));
-
+// Test route
 app.get("/", (req, res) => {
   res.status(200).send("<h1>Hello World</h1>");
 });
 
-// Connect to DB
+// Connect to DB and start server
 db.sequelize
   .authenticate()
   .then(() => {
@@ -37,10 +38,10 @@ db.sequelize
   .then(() => {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      console.log(` Server is running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error(" Unable to connect to the database:", err);
+    console.error("❌ Unable to connect to the database:", err);
     process.exit(1);
   });

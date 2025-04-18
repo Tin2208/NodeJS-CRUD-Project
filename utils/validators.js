@@ -23,12 +23,20 @@ module.exports = {
   },
 
   isValidNumber(value, field = "Field") {
-    if (typeof value !== "number" || isNaN(value || value <= 0)) {
+    if (typeof value !== "number" || isNaN(value)) {
       return {
         valid: false,
         message: `${field} must be a valid number.`,
       };
+    } else {
+      if (value <= 0) {
+        return {
+          valid: false,
+          message: `${field} The input number must be greater than 0.`,
+        };
+      }
     }
+
     return { valid: true };
   },
 };

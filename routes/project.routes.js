@@ -1,17 +1,24 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/user.controller");
+const projectController = require("../controllers/project.controller");
 
-// GET /api/v1/users
+
 /**
  * @swagger
- * /api/v1/users:
+ * tags:
+ *   name: Projects
+ *   description: Project management APIs
+ */
+
+/**
+ * @swagger
+ * /api/v1/projects:
  *   get:
- *     summary: Get all users
- *     tags: [Users]
+ *     summary: Get all projects
+ *     tags: [Projects]
  *     responses:
  *       200:
- *         description: A list of users
+ *         description: A list of projects
  *         content:
  *           application/json:
  *             schema:
@@ -21,18 +28,17 @@ const userController = require("../controllers/user.controller");
  *                 properties:
  *                   id:
  *                     type: integer
- *                     example: 1
- *                   name:
+ *                   title:
  *                     type: string
- *                     example: John Doe
- *                   email:
+ *                   description:
  *                     type: string
- *                     example: john.doe@example.com
- *                   age:
+ *                   status:
+ *                     type: string
+ *                     enum: [pending, in progress, completed]
+ *                   userId:
  *                     type: integer
- *                     example: 30
  *       404:
- *         description: No users found
+ *         description: No projects found
  *         content:
  *           application/json:
  *             schema:
@@ -40,7 +46,7 @@ const userController = require("../controllers/user.controller");
  *               properties:
  *                 error:
  *                   type: string
- *                   example: "No users found"
+ *                   example: No project found
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -52,25 +58,24 @@ const userController = require("../controllers/user.controller");
  *                   type: string
  *                   example: Internal Server Error
  */
-router.get("/", userController.getAllUsers);
+router.get("/", projectController.getAllProjects);
 
-// GET /api/v1/users/:id
 /**
  * @swagger
- * /api/v1/users/{id}:
+ * /api/v1/projects/{id}:
  *   get:
- *     summary: Get a user by ID
- *     tags: [Users]
+ *     summary: Get a project by ID
+ *     tags: [Projects]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         description: The user ID
+ *         description: Project ID
  *     responses:
  *       200:
- *         description: User fetched successfully
+ *         description: Project fetched successfully
  *         content:
  *           application/json:
  *             schema:
@@ -81,24 +86,23 @@ router.get("/", userController.getAllUsers);
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: User fetched successfully
+ *                   example: Project fetched successfully
  *                 data:
  *                   type: object
  *                   properties:
  *                     id:
  *                       type: integer
- *                       example: 1
- *                     name:
+ *                     title:
  *                       type: string
- *                       example: John Doe
- *                     email:
+ *                     description:
  *                       type: string
- *                       example: john.doe@example.com
- *                     age:
+ *                     status:
+ *                       type: string
+ *                       enum: [pending, in progress, completed]
+ *                     userId:
  *                       type: integer
- *                       example: 30
  *       404:
- *         description: User not found
+ *         description: Project not found
  *         content:
  *           application/json:
  *             schema:
@@ -109,7 +113,7 @@ router.get("/", userController.getAllUsers);
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: Users with id 1 not found
+ *                   example: Project with id 1 not found
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -127,15 +131,14 @@ router.get("/", userController.getAllUsers);
  *                   type: string
  *                   example: Error message
  */
-router.get("/:id", userController.getUserById);
+router.get("/:id", projectController.getProjectById);
 
-// POST /api/v1/users
 /**
  * @swagger
- * /api/v1/users:
+ * /api/v1/projects:
  *   post:
- *     summary: Create a new user
- *     tags: [Users]
+ *     summary: Create a new project
+ *     tags: [Projects]
  *     requestBody:
  *       required: true
  *       content:
@@ -143,22 +146,23 @@ router.get("/:id", userController.getUserById);
  *           schema:
  *             type: object
  *             required:
- *               - name
- *               - email
- *               - age
+ *               - title
+ *               - description
+ *               - status
+ *               - userId
  *             properties:
- *               name:
+ *               title:
  *                 type: string
- *                 example: John Doe
- *               email:
+ *               description:
  *                 type: string
- *                 example: john.doe@example.com
- *               age:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, in progress, completed]
+ *               userId:
  *                 type: integer
- *                 example: 30
  *     responses:
  *       201:
- *         description: User created successfully
+ *         description: Project created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -169,22 +173,25 @@ router.get("/:id", userController.getUserById);
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: User created successfully
+ *                   example: Project created successfully
  *                 data:
  *                   type: object
  *                   properties:
  *                     id:
  *                       type: integer
  *                       example: 1
- *                     name:
+ *                     title:
  *                       type: string
- *                       example: John Doe
- *                     email:
+ *                       example: Project 1
+ *                     description:
  *                       type: string
- *                       example: john.doe@example.com
- *                     age:
+ *                       example: Description of project 1
+ *                     status:
+ *                       type: string
+ *                       example: in progress
+ *                     userId:
  *                       type: integer
- *                       example: 30
+ *                       example: 1
  *       400:
  *         description: Missing required fields
  *         content:
@@ -197,9 +204,9 @@ router.get("/:id", userController.getUserById);
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: "Missing required fields: name, email, or age"
+ *                   example: "Missing required fields: title, description, status or userId"
  *       404:
- *         description: User name or email already exists
+ *         description: Project not found or already exists
  *         content:
  *           application/json:
  *             schema:
@@ -210,7 +217,7 @@ router.get("/:id", userController.getUserById);
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: User name or email already exists
+ *                   example: Project name or email already exists
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -228,22 +235,21 @@ router.get("/:id", userController.getUserById);
  *                   type: string
  *                   example: Error message
  */
-router.post("/", userController.createUser);
+router.post("/", projectController.createProject);
 
-// PUT /api/v1/users/:id
 /**
  * @swagger
- * /api/v1/users/{id}:
+ * /api/v1/projects/{id}:
  *   put:
- *     summary: Update a user by ID
- *     tags: [Users]
+ *     summary: Update a project by ID
+ *     tags: [Projects]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         description: The user ID
+ *         description: Project ID
  *     requestBody:
  *       required: true
  *       content:
@@ -251,18 +257,18 @@ router.post("/", userController.createUser);
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               title:
  *                 type: string
- *                 example: John Doe
- *               email:
+ *               description:
  *                 type: string
- *                 example: john.doe@example.com
- *               age:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, in progress, completed]
+ *               userId:
  *                 type: integer
- *                 example: 30
  *     responses:
  *       200:
- *         description: User updated successfully
+ *         description: Project updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -273,24 +279,27 @@ router.post("/", userController.createUser);
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: User updated successfully
+ *                   example: Project updated successfully
  *                 data:
  *                   type: object
  *                   properties:
  *                     id:
  *                       type: integer
  *                       example: 1
- *                     name:
+ *                     title:
  *                       type: string
- *                       example: John Doe
- *                     email:
+ *                       example: Project 1
+ *                     description:
  *                       type: string
- *                       example: john.doe@example.com
- *                     age:
+ *                       example: Description of project 1
+ *                     status:
+ *                       type: string
+ *                       example: in progress
+ *                     userId:
  *                       type: integer
- *                       example: 30
+ *                       example: 1
  *       400:
- *         description: Invalid ID
+ *         description: Invalid ID or input
  *         content:
  *           application/json:
  *             schema:
@@ -301,9 +310,9 @@ router.post("/", userController.createUser);
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: Invalid ID or provide id
+ *                   example: Invalid ID or input
  *       404:
- *         description: User not found
+ *         description: Project not found
  *         content:
  *           application/json:
  *             schema:
@@ -314,7 +323,7 @@ router.post("/", userController.createUser);
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: Users with id 1 not found
+ *                   example: Project with id 1 not found
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -332,25 +341,24 @@ router.post("/", userController.createUser);
  *                   type: string
  *                   example: Error message
  */
-router.put("/:id", userController.updateUser);
+router.put("/:id", projectController.updateProject);
 
-// DELETE /api/v1/users/:id
 /**
  * @swagger
- * /api/v1/users/{id}:
+ * /api/v1/projects/{id}:
  *   delete:
- *     summary: Delete a user by ID
- *     tags: [Users]
+ *     summary: Delete a project by ID
+ *     tags: [Projects]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         description: The user ID
+ *         description: Project ID
  *     responses:
  *       200:
- *         description: User deleted successfully
+ *         description: Project deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -361,22 +369,9 @@ router.put("/:id", userController.updateUser);
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: User deleted successfully
- *       400:
- *         description: Invalid ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: Invalid ID or provide id
+ *                   example: Project deleted successfully
  *       404:
- *         description: User not found
+ *         description: Project not found
  *         content:
  *           application/json:
  *             schema:
@@ -387,7 +382,7 @@ router.put("/:id", userController.updateUser);
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: Users with id 1 not found
+ *                   example: Project with id 1 not found
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -405,6 +400,6 @@ router.put("/:id", userController.updateUser);
  *                   type: string
  *                   example: Error message
  */
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", projectController.deleteProject);
 
 module.exports = router;
