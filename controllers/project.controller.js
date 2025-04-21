@@ -34,14 +34,17 @@ const getProjectById = async (req, res) => {
   const projectId = req.params.id;
 
   try {
-    const project = await db.project.findByPk(projectId);
+    const project = await db.project.findByPk(projectId, {
+      include: [{ model: db.user, through: { attributes: [] } }],
+    });
+
     if (!project) {
       return res.status(404).json({
         success: false,
         message: `Project with id ${projectId} not found`,
       });
     }
-    console.log("Project fetched:", project);
+
     res.status(200).json({
       success: true,
       message: "Project fetched successfully",
@@ -59,78 +62,46 @@ const getProjectById = async (req, res) => {
 
 //Create project
 const createProject = async (req, res) => {
-  console.log(`createProject: raw req.body=${JSON.stringify(req.body)}`);
-  const { title, description, status, userId } = req.body;
+  const { title, description, status, userIds } = req.body;
 
-  console.log(
-    `createProject: userId=${JSON.stringify(
-      userId
-    )}, type=${typeof userId}, isArray=${Array.isArray(userId)}`
-  );
-
-  const titleValidation = validators.isValidString(title, "Title");
-  const descriptionValidation = validators.isValidString(
-    description,
-    "Description"
-  );
-  const statusValidation = validators.isValidString(status, "Status");
-  const userIdValidation = validators.isValidNumber(userId, "User ID");
-
-  if (!titleValidation.valid) {
-    return res
-      .status(400)
-      .json({ success: false, message: titleValidation.message });
+  // Kiểm tra sự tồn tại và tính hợp lệ của `userIds`
+  if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "userIds is required and must be a non-empty array of integers.",
+    });
   }
-  if (!descriptionValidation.valid) {
-    return res
-      .status(400)
-      .json({ success: false, message: descriptionValidation.message });
-  }
-  if (!statusValidation.valid) {
-    return res
-      .status(400)
-      .json({ success: false, message: statusValidation.message });
-  }
-  if (!userIdValidation.valid) {
-    return res
-      .status(400)
-      .json({ success: false, message: userIdValidation.message });
-  }
-
-  console.log("userId raw:", userId);
-  console.log("type:", typeof userId);
-  console.log("isArray:", Array.isArray(userId));
-
-  const validatedUserId = userIdValidation.value;
 
   try {
-    const user = await db.user.findByPk(validatedUserId);
-    if (!user) {
+    // Kiểm tra tất cả userId có tồn tại không
+    const users = await db.user.findAll({ where: { id: userIds } });
+    if (users.length !== userIds.length) {
       return res.status(404).json({
         success: false,
-        message: `User with id ${validatedUserId} does not exist`,
+        message: "One or more userIds do not exist.",
       });
     }
 
+    // Tạo project
     const newProject = await db.project.create({
       title,
       description,
       status,
-      userId: validatedUserId,
     });
 
-    console.log("Project created:", JSON.stringify(newProject, null, 2));
+    // Thêm userIds vào bảng trung gian
+    await newProject.addUsers(userIds);
 
     res.status(201).json({
       success: true,
-      message: "Project created successfully",
+      message: "Project created successfully.",
       data: newProject,
     });
   } catch (error) {
     console.error("Error creating project:", error);
     res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: "Internal Server Error.",
       error: error.message,
     });
   }
@@ -139,12 +110,7 @@ const createProject = async (req, res) => {
 //Update project
 const updateProject = async (req, res) => {
   const projectId = req.params.id;
-  if (!projectId) {
-    return res.status(400).json({
-      success: false,
-      message: "Project ID is required",
-    });
-  }
+  const { title, description, status, userIds } = req.body;
 
   try {
     const project = await db.project.findByPk(projectId);
@@ -155,78 +121,29 @@ const updateProject = async (req, res) => {
       });
     }
 
-    const updateData = {};
-    const { title, description, status, userId } = req.body;
-
-    if (title !== undefined) {
-      const titleValidation = validators.isValidString(title, "Title");
-      if (!titleValidation.valid) {
-        return res.status(400).json({
+    if (userIds) {
+      const users = await db.user.findAll({ where: { id: userIds } });
+      if (users.length !== userIds.length) {
+        return res.status(404).json({
           success: false,
-          message: titleValidation.message,
+          message: "One or more userIds do not exist",
         });
       }
-      updateData.title = title;
+
+      // Cập nhật userIds trong bảng trung gian
+      await project.setUsers(userIds);
     }
 
-    if (description !== undefined) {
-      const descValidation = validators.isValidString(
-        description,
-        "Description"
-      );
-      if (!descValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: descValidation.message,
-        });
-      }
-      updateData.description = description;
-    }
+    await project.update({ title, description, status });
 
-    if (status !== undefined) {
-      const statusValidation = validators.isValidString(status, "Status");
-      if (!statusValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: statusValidation.message,
-        });
-      }
-      updateData.status = status;
-    }
-
-    if (userId !== undefined) {
-      const userIdValidation = validators.isValidNumber(userId, "User ID");
-      if (!userIdValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: userIdValidation.message,
-        });
-      }
-      updateData.userId = userId;
-    }
-
-    // Không có field nào được cung cấp
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "At least one field (title, description, status, userId) must be provided to update",
-      });
-    }
-
-    await db.project.update(updateData, {
-      where: { id: projectId },
-    });
-
-    const updatedProject = await db.project.findByPk(projectId);
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Project updated successfully",
-      data: updatedProject,
+      data: project,
     });
   } catch (error) {
     console.error("Error updating project:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Internal Server Error",
       error: error.message,

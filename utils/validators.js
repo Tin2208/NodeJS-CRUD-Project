@@ -40,7 +40,7 @@ module.exports = {
       };
     }
 
-    // const parsed = Number(value);
+    const parsed = Number(value); // Bỏ bình luận dòng này
 
     if (isNaN(value)) {
       return {

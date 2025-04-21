@@ -242,13 +242,13 @@ router.post("/", projectController.createProject);
  *               status:
  *                 type: string
  *                 enum: [pending, in progress, completed]
- *               userId:
- *                 type: integer
+ *               userIds:
+ *                  type: array
  *             example:
  *               title: "Updated Project"
  *               description: "Updated project description"
  *               status: "in progress"
- *               userId: 1
+ *               userIds: 1
  *     responses:
  *       200:
  *         description: Project updated successfully

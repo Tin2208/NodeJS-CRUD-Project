@@ -48,27 +48,18 @@ module.exports = (sequelize, DataTypes) => {
           },
         },
       },
-      userId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: "users",
-          key: "id",
-        },
-        validate: {
-          isInt: {
-            msg: "User ID must be an integer",
-          },
-          min: {
-            args: 1,
-            msg: "User ID must be greater than 0",
-          },
-          notEmpty: {
-            args: true,
-            msg: "UserId cannot be empty",
-          },
-        },
-      },
+      // userIds: {
+      //   type: DataTypes.JSON, // Sử dụng JSON để lưu danh sách userId
+      //   allowNull: false,
+      //   defaultValue: [],
+      //   validate: {
+      //     isArray(value) {
+      //       if (!Array.isArray(value)) {
+      //         throw new Error("userIds must be an array of integers");
+      //       }
+      //     },
+      //   },
+      // },
     },
     {
       tableName: "projects",
