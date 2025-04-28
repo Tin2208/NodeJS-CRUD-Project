@@ -8,7 +8,7 @@
 }
 @media screen and (max-width: 768px) {
   .wrapper-content {
-    display: block;
+    /* display: block; */
   }
 }
 table td {

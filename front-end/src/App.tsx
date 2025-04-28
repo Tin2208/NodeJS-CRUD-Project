@@ -8,7 +8,7 @@ function App() {
     <BrowserRouter>
       <div className="wrapper-content">
         <Sidebar />
-        <div className="">
+        <div className="w-full">
           <Routes>
             <Route path="/" element={<Navigate to="/projects" />} />
             <Route path="/projects" element={<Project />} />

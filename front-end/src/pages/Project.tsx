@@ -2,7 +2,7 @@ import ProjectList from "../components/ProjectList";
 
 const project = () => {
   return (
-    <div>
+    <div className="w-full">
       <ProjectList />
     </div>
   );
