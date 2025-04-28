@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+.no-wrap-table .ant-table-cell {
+  white-space: nowrap;
+}
+.wrapper-content {
+  display: flex;
+}
+@media screen and (max-width: 768px) {
+  .wrapper-content {
+    display: block;
+  }
+}
+table td {
+  max-width: 200px;
+}
